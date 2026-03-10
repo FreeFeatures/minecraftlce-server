@@ -30,8 +30,8 @@ static const char *kServerPropertiesPath = "server.properties";
 static const size_t kMaxSaveIdLength = 31;
 
 static const int kDefaultServerPort = 25565;
-static const int kDefaultMaxPlayers = 8;
-static const int kMaxDedicatedPlayers = 8;
+static const int kDefaultMaxPlayers = 50;
+static const int kMaxDedicatedPlayers = 50;
 static const int kDefaultAutosaveIntervalSeconds = 60;
 static const char *kLanAdvertisePropertyKey = "lan-advertise";
 
@@ -63,7 +63,7 @@ static const ServerPropertyDefault kServerPropertyDefaults[] =
 	{ "level-type", "default" },
 	{ "log-level", "info" },
 	{ "max-build-height", "256" },
-	{ "max-players", "8" },
+	{ "max-players", "50" },
 	{ "mob-griefing", "true" },
 	{ "motd", "A Minecraft Server" },
 	{ "natural-regeneration", "true" },

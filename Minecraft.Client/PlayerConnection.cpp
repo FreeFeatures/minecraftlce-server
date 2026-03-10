@@ -38,6 +38,8 @@
 #include "..\Minecraft.Server\ServerLogManager.h"
 #endif
 
+#include "..\Minecraft.World\DamageSource.h"
+
 Random PlayerConnection::random;
 
 
@@ -662,6 +664,13 @@ void PlayerConnection::handleChat(shared_ptr<ChatPacket> packet)
 		handleCommand(message);
 		return;
 	}
+	
+	// Add greentext parsing this doesnt work lol
+	if (message.length() > 0 && message[0] == L'>')
+	{
+		message = L"\x00A7" L"a" + message;
+	}
+
 	wstring formatted = L"<" + player->name + L"> " + message;
 	server->getPlayers()->broadcastAll(shared_ptr<ChatPacket>(new ChatPacket(formatted)));
 	chatSpamTickCount += SharedConstants::TICKS_PER_SECOND;
@@ -677,7 +686,29 @@ void PlayerConnection::handleCommand(const wstring& message)
 #if 0
 	server.getCommandDispatcher().performCommand(player, message);
 #endif
+
+	if (message == L"/kill")
+	{
+		player->hurt(DamageSource::outOfWorld, 1000.0f);
+	}
+	else if (message == L"/help")
+	{
+		player->connection->send(shared_ptr<ChatPacket>(new ChatPacket(L"Available commands: /help, /list, /kill")));
+	}
+	else if (message == L"/list")
+	{
+		wstring playerNames = server->getPlayers()->getPlayerNames();
+		size_t playerCount = server->getPlayers()->players.size();
+		wstring listMessage = L"There are " + to_wstring(playerCount) + L" connected players: " + playerNames;
+		player->connection->send(shared_ptr<ChatPacket>(new ChatPacket(listMessage)));
+	}
+	else
+	{
+		player->connection->send(shared_ptr<ChatPacket>(new ChatPacket(L"Unknown command. Try /help for a list of commands.")));
+	}
 }
+
+
 
 void PlayerConnection::handleAnimate(shared_ptr<AnimatePacket> packet)
 {
@@ -1001,7 +1032,6 @@ void PlayerConnection::handleTextureChange(shared_ptr<TextureChangePacket> packe
 		// Update the ref count on the memory texture data
 		app.AddMemoryTextureFile(packet->path,NULL,0);
 	}
-	server->getPlayers()->broadcastAll( shared_ptr<TextureChangePacket>( new TextureChangePacket(player,packet->action,packet->path) ), player->dimension );
 }
 
 void PlayerConnection::handleTextureAndGeometryChange(shared_ptr<TextureAndGeometryChangePacket> packet)
@@ -1291,6 +1321,7 @@ void PlayerConnection::handleSetCreativeModeSlot(shared_ptr<SetCreativeModeSlotP
 			player->refreshContainer(player->inventoryMenu, &items);
 		}
 	}
+
 }
 
 void PlayerConnection::handleContainerAck(shared_ptr<ContainerAckPacket> packet)
